@@ -15,7 +15,7 @@ public class DoNothingFilter implements PixelFilter {
 
         window.fill(0, 255, 0);
         window.ellipse(0, 0, 10, 10);
+
+        window.line(0, 0, original.getWidth(), original.getHeight());
     }
-
 }
-
