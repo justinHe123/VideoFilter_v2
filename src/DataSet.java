@@ -1,18 +1,27 @@
 import java.util.ArrayList;
 
 public class DataSet {
-    final private int FPS = 30; //variable constant
-    final private double CMPP = 79/207; //29.5 cm / 207 pixels (radius)
+    private int fps = 30; //base
+    private double cmPerPixel = 79/207; //79 cm / 207 pixels (radius)
     private double centerRegionDistance, wallRegionDistance;
     private ArrayList<Point> points;
     private Point enclosureCenter;
 
     //all times in seconds
-    public DataSet(Point center){
+    public DataSet(Point center, int fps){
         enclosureCenter = center;
         points = new ArrayList<>();
+        this.fps = fps;
         centerRegionDistance = 100; //temp value, user prompted
         wallRegionDistance = 205; //temp value, user prompted
+    }
+
+    public void setFPS(int fps){
+        this.fps = fps;
+    }
+
+    public void setCmPerPixel(double cmpp){
+        cmPerPixel = cmpp;
     }
 
     public void add(Point point){
@@ -23,20 +32,36 @@ public class DataSet {
         return points;
     }
 
-    public Point getLocation(int time){ //time in seconds
-        return points.get(time*FPS);
+    public Point getLocation(double time){ //time in seconds
+        return points.get((int)(time*fps));
     }
 
-    public double getSpeed(int time){
-        int frame = time*FPS;
-        Point p1 = points.get(frame);
-        Point p2 = points.get(frame + 1);
-        return (p2.getY() - p1.getY()) - (p2.getX() - p1.getX());
+    public double getSpeed(double time){
+        int frame = (int)(time * fps);
+        if (frame > points.size() - 1) return 0;
+        Point p1, p2;
+        if (time == getCurrentTime()){
+            p1 = points.get(frame);
+            p2 = points.get(frame - 1);
+
+        } else {
+            p1 = points.get(frame);
+            p2 = points.get(frame + 1);
+        }
+        return p1.distanceFrom(p2) * fps;
+    }
+
+    public double getCurrentTime(){
+        return points.size()/(double)fps;
+    }
+
+    public double getCurrentSpeed(){
+        return getSpeed(getCurrentTime());
     }
 
     public double getAverageSpeed(int t1, int t2){ //t1 < t2, in seconds
-        int startFrame = FPS * t1;
-        int endFrame = FPS * t2;
+        int startFrame = fps * t1;
+        int endFrame = fps * t2;
         if (points.size() < endFrame) return -1; //invalid time range
         double rateSum = 0; //in pixels/frame
         for (int i = startFrame; i < endFrame - 1; i++){
@@ -44,7 +69,7 @@ public class DataSet {
             rateSum += rate;
         }
         double rateAverage = rateSum / (endFrame - startFrame - 1);
-        return rateSum * FPS * CMPP; //converts to frames
+        return rateSum * fps * cmPerPixel; //converts to frames
     }
 
     public double getDistanceFromWall(int time){
@@ -79,4 +104,7 @@ public class DataSet {
         return null;
     }
 
+    public String toString(){
+        return "TIME: " + getCurrentTime() + ", SPEED: " + getCurrentSpeed();
+    }
 }

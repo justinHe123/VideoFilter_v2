@@ -14,12 +14,8 @@ public class Mouse implements PixelFilter {
     private DataSet dataObj;
     private Point currentCenter;
 
-    private ArrayList<Point> points;
-
     public Mouse(){
-        dataObj = new DataSet(CENTER);
-        points = new ArrayList<Point>();
-
+        dataObj = new DataSet(CENTER, 25);
     }
 
     @Override
@@ -30,16 +26,6 @@ public class Mouse implements PixelFilter {
         cheapHack(pixels);
         currentCenter = calculateMouseCenter(pixels);
         dataObj.add(currentCenter);
-
-        boolean duplicate = false;
-        for (Point point : points) {
-            if (currentCenter.equals(point)) {
-                duplicate = true;
-            }
-        }
-        if (!duplicate){
-            points.add(currentCenter);
-        }
 
         img.setPixels(pixels);
         return img;
@@ -90,6 +76,7 @@ public class Mouse implements PixelFilter {
         window.fill(254);
         window.ellipse(CENTER.getX(), CENTER.getY(), 5, 5);
 
+        ArrayList<Point> points = dataObj.getPoints();
         for (int i = 1; i < points.size(); i++){
             window.stroke(255, 0, 0);
             window.line(points.get(i).getX(), points.get(i).getY(), points.get(i-1).getX(), points.get(i-1).getY());
@@ -99,6 +86,9 @@ public class Mouse implements PixelFilter {
             window.fill(255, 0, 0);
             window.ellipse(currentCenter.getX(), currentCenter.getY(), 5, 5);
         }
+
+        window.textSize(20);
+        window.text(dataObj.toString(), 0, 0);
     }
 
     public void threshold1(short[][] pixels, int threshold){
