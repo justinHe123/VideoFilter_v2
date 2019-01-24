@@ -9,6 +9,7 @@ public class DataSet {
     private int enclosureRadius;
     private ArrayList<Point> centerRegion;
     private ArrayList<Point> wallRegion;
+    private double pixelsTravelled;
 
     //all times in seconds
     public DataSet(Point center, int radius, int fps){
@@ -18,6 +19,7 @@ public class DataSet {
         centerRegion = new ArrayList<>();
         wallRegion = new ArrayList<>();
         this.fps = fps;
+        pixelsTravelled = 0;
         centerRegionDistance = 100; //temp value, user prompted
         wallRegionDistance = 205; //temp value, user prompted
     }
@@ -37,14 +39,16 @@ public class DataSet {
         } else if (getDistanceFromCenter() > wallRegionDistance){
             wallRegion.add(point);
         }
-
+        if (points.size() > 1){
+            pixelsTravelled += point.distanceFrom(points.get(points.size() - 2));
+        }
     }
 
     public ArrayList<Point> getPoints(){
         return points;
     }
 
-    public Point getLocation(double time){ //time in seconds
+    public Point getLocation(double time){ //need to update
         return points.get((int)(time*fps));
     }
 
@@ -55,7 +59,7 @@ public class DataSet {
         return points.get(points.size() - 1);
     }
 
-    public double getSpeed(int frame){
+    public double getSpeed(int frame){ //in frames, currently code is a disaster DO NOT TOUCH (yet)
         if (frame == getCurrentFrame()){
             frame = frame - 1 ;
         }
@@ -81,7 +85,7 @@ public class DataSet {
         return getSpeed(getCurrentFrame());
     }
 
-    public double getAverageSpeed(int startFrame, int endFrame){ //t1 < t2, in seconds
+    public double getAverageSpeed(int startFrame, int endFrame){ //UNKNOWN TERRITORIES (might completely break)
         if (points.size() < endFrame) return -1; //invalid time range
         double rateSum = 0; //in pixels/frame
         for (int i = startFrame; i < endFrame - 1; i++){
@@ -92,47 +96,49 @@ public class DataSet {
         return rateSum * cmPerPixel; //converts to frames
     }
 
-    public double getDistanceFromWall(){
+    public double getDistanceFromWall(){ //currently in pixels
         return enclosureRadius - getDistanceFromCenter();
     }
 
-    public double getDistanceFromCenter(){
+    public double getDistanceFromCenter(){ //current in pixels
         return getCurrentLocation().distanceFrom(enclosureCenter);
     }
 
     public double getTimeCloseToCenter(){
-        return 0;
+        return centerRegion.size() / fps;
     }
 
     public double getTimeCloseToWall(){
-        return 0;
+        return wallRegion.size() / fps;
     }
 
     public double getDistanceTravelled(){
+        return pixelsTravelled * cmPerPixel;
+    }
+
+    public double getTimeInSpeedBounds(double minSpeed, double maxSpeed){ //fill in later
         return 0;
     }
 
-    public double getTimeInSpeedBounds(double minSpeed, double maxSpeed){
-        return 0;
-    }
-
-    public ArrayList<Integer> getTimeNearWall(){
+    public ArrayList<Integer> getTimeNearWall(){ //fill in later
         return null;
     }
 
-    public ArrayList<Integer> getTimeNearCenter(){
+    public ArrayList<Integer> getTimeNearCenter(){ //fill in later
         return null;
     }
 
-    public ArrayList<Integer> getTimeAtSpeed(double speed){
+    public ArrayList<Integer> getTimeAtSpeed(double speed){ //fill in later
         return null;
     }
 
 //    public String toString(){
-//        return "TIME: " + getCurrentTime() +
-//                "\nLOCATION: " + getCurrentLocation().toString() +
-//                "\nSPEED: " + Math.round(getCurrentSpeed()) +
-//                "\nDISTANCE FROM WALL: " + Math.round(getDistanceFromWall());
+//        return "\nTIME: " + getCurrentTime() +
+//            "\nLOCATION: " + getCurrentLocation().toString() +
+//            "\nSPEED: " + Math.round(getCurrentSpeed()) +
+//            "\nDISTANCE FROM WALL: " + Math.round(getDistanceFromWall()) +
+//            "\nDISTANCE FROM CENTER: " + Math.round(getDistanceFromCenter()) +
+//            "\nDISTANCE TRAVELLED: " + Math.round(getDistanceTravelled()) + " CM";
 //    }
 
 }

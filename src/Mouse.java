@@ -80,6 +80,7 @@ public class Mouse implements PixelFilter {
         for (int i = 1; i < points.size(); i++){
             window.stroke(255, 0, 0);
             window.line(points.get(i).getX(), points.get(i).getY(), points.get(i-1).getX(), points.get(i-1).getY());
+            window.stroke(0, 0, 0);
         }
 
         if (currentCenter != null){
@@ -88,6 +89,7 @@ public class Mouse implements PixelFilter {
         }
 
         window.textSize(20);
+        window.fill(255, 255, 255);
         window.text(toString(dataObj), 0, 0);
     }
 
@@ -131,9 +133,11 @@ public class Mouse implements PixelFilter {
     }
 
     public String toString(DataSet dataObj){
-        return "TIME: " + dataObj.getCurrentTime() +
+        return "\nTIME: " + dataObj.getCurrentTime() +
                 "\nLOCATION: " + dataObj.getCurrentLocation().toString() +
                 "\nSPEED: " + Math.round(dataObj.getCurrentSpeed()) +
-                "\nDISTANCE FROM WALL: " + Math.round(dataObj.getDistanceFromWall());
+                "\nDISTANCE FROM WALL: " + Math.round(dataObj.getDistanceFromWall()) +
+                "\nDISTANCE FROM CENTER: " + Math.round(dataObj.getDistanceFromCenter()) +
+                "\nDISTANCE TRAVELLED: " + Math.round(dataObj.getDistanceTravelled()) + " CM";
     }
 }
