@@ -23,16 +23,20 @@ public class Point {
         return x == point.getX() && y == point.getY();
     }
 
-    public void takeRandomStep() {
-        int move = (int)(Math.random() * 4);
-        if (move == 0){
-            x += 3;
-        } else if (move == 1){
-            x -= 3;
-        } else if (move == 2){
-            y += 3;
-        } else {
-            y -= 3;
-        }
+    public String toString(){
+        return x + ", " + y;
     }
+
+//    public void takeRandomStep() {
+//        int move = (int)(Math.random() * 4);
+//        if (move == 0){
+//            x += 3;
+//        } else if (move == 1){
+//            x -= 3;
+//        } else if (move == 2){
+//            y += 3;
+//        } else {
+//            y -= 3;
+//        }
+//    }
 }

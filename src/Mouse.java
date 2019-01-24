@@ -15,7 +15,7 @@ public class Mouse implements PixelFilter {
     private Point currentCenter;
 
     public Mouse(){
-        dataObj = new DataSet(CENTER, 25);
+        dataObj = new DataSet(CENTER, 205, 25);
     }
 
     @Override
@@ -88,7 +88,7 @@ public class Mouse implements PixelFilter {
         }
 
         window.textSize(20);
-        window.text(dataObj.toString(), 0, 0);
+        window.text(toString(dataObj), 0, 0);
     }
 
     public void threshold1(short[][] pixels, int threshold){
@@ -128,5 +128,12 @@ public class Mouse implements PixelFilter {
 
     public double distance(int x1, int y1, int x2, int y2) {
         return Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+    }
+
+    public String toString(DataSet dataObj){
+        return "TIME: " + dataObj.getCurrentTime() +
+                "\nLOCATION: " + dataObj.getCurrentLocation().toString() +
+                "\nSPEED: " + Math.round(dataObj.getCurrentSpeed()) +
+                "\nDISTANCE FROM WALL: " + Math.round(dataObj.getDistanceFromWall());
     }
 }
