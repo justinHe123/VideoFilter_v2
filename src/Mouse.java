@@ -75,8 +75,8 @@ public class Mouse implements PixelFilter {
     public void drawOverlay(PApplet window, DImage original, DImage filtered) {
         window.fill(254);
         window.ellipse(CENTER.getX(), CENTER.getY(), 5, 5);
-
         ArrayList<Point> points = dataObj.getPoints();
+
         for (int i = 1; i < points.size(); i++){
             window.stroke(255, 0, 0);
             window.line(points.get(i).getX(), points.get(i).getY(), points.get(i-1).getX(), points.get(i-1).getY());
@@ -134,10 +134,13 @@ public class Mouse implements PixelFilter {
 
     public String toString(DataSet dataObj){
         return "\nTIME: " + dataObj.getCurrentTime() +
+                "\n FRAMES: " + dataObj.getPoints().size() +
                 "\nLOCATION: " + dataObj.getCurrentLocation().toString() +
-                "\nSPEED: " + Math.round(dataObj.getCurrentSpeed()) +
+                "\nSPEED: " + Math.round(dataObj.getCurrentSpeed()) + "CM/S" +
                 "\nDISTANCE FROM WALL: " + Math.round(dataObj.getDistanceFromWall()) +
                 "\nDISTANCE FROM CENTER: " + Math.round(dataObj.getDistanceFromCenter()) +
-                "\nDISTANCE TRAVELLED: " + Math.round(dataObj.getDistanceTravelled()) + " CM";
+                "\nDISTANCE TRAVELLED: " + Math.round(dataObj.getDistanceTravelled()) + " CM" +
+                "\nTIMECODE NEAR WALL: " + dataObj.getTimeCodeNearWall().toString() +
+                "\nTIMECODE NEAR CENTER: " + dataObj.getTimeCodeNearCenter().toString();
     }
 }

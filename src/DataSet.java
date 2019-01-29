@@ -1,17 +1,15 @@
-import java.util.ArrayList;
+import java.io.*;
+import java.util.*;
 
 public class DataSet {
     private int fps = 25; //base
     private double cmPerPixel = 39.5/207; //79 cm / 207 pixels (radius)
     private double centerRegionDistance, wallRegionDistance;
-    private ArrayList<Point> points;
     private Point enclosureCenter;
     private int enclosureRadius;
-    private ArrayList<Point> centerRegion;
-    private ArrayList<Point> wallRegion;
+    private ArrayList<Point> points, wallRegion, centerRegion;
     private double pixelsTravelled;
 
-    //all times in seconds
     public DataSet(Point center, int radius, int fps){
         enclosureCenter = center;
         enclosureRadius = radius; //in pixels
@@ -20,8 +18,8 @@ public class DataSet {
         wallRegion = new ArrayList<>();
         this.fps = fps;
         pixelsTravelled = 0;
-        centerRegionDistance = 100; //temp value, user prompted
-        wallRegionDistance = 205; //temp value, user prompted
+        centerRegionDistance = 10.0 / cmPerPixel; //temp value, user prompted
+        wallRegionDistance = 10.0 / cmPerPixel; //temp value, user prompted
     }
 
     public void setFPS(int fps){
@@ -36,7 +34,7 @@ public class DataSet {
         points.add(point); //adds point every frame
         if (getDistanceFromCenter() < centerRegionDistance){
             centerRegion.add(point);
-        } else if (getDistanceFromCenter() > wallRegionDistance){
+        } else if (getDistanceFromWall() < wallRegionDistance){
             wallRegion.add(point);
         }
         if (points.size() > 1){
@@ -59,6 +57,23 @@ public class DataSet {
         return points.get(points.size() - 1);
     }
 
+
+    public double getCurrentTime(){
+        return points.size()/(double)fps;
+    }
+
+    public int getCurrentFrame() {
+        return points.size();
+    }
+
+//    public double getCurrentSpeed(){
+//        return getSpeed(getCurrentFrame());
+//    }
+
+    public double getCurrentSpeed(){
+        return getAverageSpeed(getCurrentFrame() - 5, getCurrentFrame());
+    }
+
     public double getSpeed(int frame){ //in frames, currently code is a disaster DO NOT TOUCH (yet)
         if (frame == getCurrentFrame()){
             frame = frame - 1 ;
@@ -73,27 +88,16 @@ public class DataSet {
         return p1.distanceFrom(p2) * cmPerPixel * fps;
     }
 
-    public double getCurrentTime(){
-        return points.size()/(double)fps;
-    }
-
-    public int getCurrentFrame() {
-        return points.size();
-    }
-
-    public double getCurrentSpeed(){
-        return getSpeed(getCurrentFrame());
-    }
-
     public double getAverageSpeed(int startFrame, int endFrame){ //UNKNOWN TERRITORIES (might completely break)
-        if (points.size() < endFrame) return -1; //invalid time range
+        if (endFrame > points.size() || startFrame < 0) return -1; //invalid time range
         double rateSum = 0; //in pixels/frame
         for (int i = startFrame; i < endFrame - 1; i++){
             double rate = getSpeed(i);
             rateSum += rate;
         }
-        double rateAverage = rateSum / (endFrame - startFrame - 1);
-        return rateSum * cmPerPixel; //converts to frames
+        int numFrames = (endFrame - startFrame - 1);
+        double rateAverage = rateSum / numFrames;
+        return rateAverage; // converts to cm
     }
 
     public double getDistanceFromWall(){ //currently in pixels
@@ -120,25 +124,41 @@ public class DataSet {
         return 0;
     }
 
-    public ArrayList<Integer> getTimeNearWall(){ //fill in later
-        return null;
+    public TimeCode getTimeCodeNearWall(){
+        return new TimeCode(wallRegion.size(), fps);
     }
 
-    public ArrayList<Integer> getTimeNearCenter(){ //fill in later
-        return null;
+    public TimeCode getTimeCodeNearCenter(){
+        return new TimeCode(centerRegion.size(), fps);
     }
 
     public ArrayList<Integer> getTimeAtSpeed(double speed){ //fill in later
         return null;
     }
 
-//    public String toString(){
-//        return "\nTIME: " + getCurrentTime() +
-//            "\nLOCATION: " + getCurrentLocation().toString() +
-//            "\nSPEED: " + Math.round(getCurrentSpeed()) +
-//            "\nDISTANCE FROM WALL: " + Math.round(getDistanceFromWall()) +
-//            "\nDISTANCE FROM CENTER: " + Math.round(getDistanceFromCenter()) +
-//            "\nDISTANCE TRAVELLED: " + Math.round(getDistanceTravelled()) + " CM";
-//    }
+    private void writeDataToFile(String filePath, String data){
+        File outFile = new File(filePath);
 
+        try(BufferedWriter writer = new BufferedWriter(new FileWriter(outFile))) {
+            writer.write(data);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+
+    private String readFileAsString (String filepath){
+        StringBuilder output = new StringBuilder();
+
+        try (Scanner scanner = new Scanner(new File(filepath))) {
+            while (scanner.hasNext()) {
+                String line = scanner.nextLine();
+                output.append(line + System.getProperty("line.separator"));
+
+            }
+        } catch (IOException e){
+                e.printStackTrace();
+        }
+        return output.toString();
+    }
 }
