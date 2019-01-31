@@ -137,8 +137,8 @@ public class Mouse implements PixelFilter {
                 "\n FRAMES: " + dataObj.getPoints().size() +
                 "\nLOCATION: " + dataObj.getCurrentLocation().toString() +
                 "\nSPEED: " + Math.round(dataObj.getCurrentSpeed()) + "CM/S" +
-                "\nDISTANCE FROM WALL: " + Math.round(dataObj.getDistanceFromWall()) +
-                "\nDISTANCE FROM CENTER: " + Math.round(dataObj.getDistanceFromCenter()) +
+                "\nDISTANCE FROM WALL: " + Math.round(dataObj.getDistanceFromWall()) + "CM" +
+                "\nDISTANCE FROM CENTER: " + Math.round(dataObj.getDistanceFromCenter()) + "CM" +
                 "\nDISTANCE TRAVELLED: " + Math.round(dataObj.getDistanceTravelled()) + " CM" +
                 "\nTIMECODE NEAR WALL: " + dataObj.getTimeCodeNearWall().toString() +
                 "\nTIMECODE NEAR CENTER: " + dataObj.getTimeCodeNearCenter().toString();
