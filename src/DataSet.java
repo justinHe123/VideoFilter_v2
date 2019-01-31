@@ -11,16 +11,19 @@ public class DataSet {
     private ArrayList<Integer> framesNearWall, framesNearCenter;
     private double pixelsTravelled;
 
+    //inputs are in frames, returns in terms of cm and s
     public DataSet(Point center, int radius, int fps){
+        //user prompted variables
         enclosureCenter = center;
         enclosureRadius = radius; //in pixels
+        this.fps = fps;
+        centerRegionDistance = 10.0; //in cm
+        wallRegionDistance = 10.0; //in cm
+
         points = new ArrayList<>();
         framesNearCenter = new ArrayList<>();
         framesNearWall = new ArrayList<>();
-        this.fps = fps;
         pixelsTravelled = 0;
-        centerRegionDistance = 10.0; //in cm
-        wallRegionDistance = 10.0; //in cm
     }
 
     public void setFPS(int fps){
@@ -85,7 +88,6 @@ public class DataSet {
         p1 = points.get(frame);
         p2 = points.get(frame - 1);
 
-        System.out.println(p1.distanceFrom(p2) * cmPerPixel * fps);
         return p1.distanceFrom(p2) * cmPerPixel * fps;
     }
 
@@ -105,25 +107,29 @@ public class DataSet {
         return (enclosureRadius - getCurrentLocation().distanceFrom(enclosureCenter)) * cmPerPixel;
     }
 
-    public double getDistanceFromCenter(){ //current in pixels
+    public double getDistanceFromCenter(){
         return (getCurrentLocation().distanceFrom(enclosureCenter)) * cmPerPixel;
     }
 
     public double getTimeCloseToCenter(){
-        return framesNearCenter.size() / fps;
+        for (int i = 0; i < points.size(); i++){
+            Point point = points.get(i);
+            if (point.distanceFrom(enclosureCenter)*cmPerPixel < centerRegionDistance) framesNearCenter.add(i);
+        }
+        return framesNearCenter.size() / (double)fps;
     }
 
     public double getTimeCloseToWall(){
-        return framesNearWall.size() / fps;
+        for (int i = 0; i < points.size(); i++){
+            Point point = points.get(i);
+            if (point.distanceFrom(enclosureCenter)*cmPerPixel < wallRegionDistance) framesNearWall.add(i);
+        }
+        return framesNearWall.size() / (double)fps;
     }
 
-    public double getDistanceTravelled(){
-        return pixelsTravelled * cmPerPixel;
-    }
-
-    public double getTimeInSpeedBounds(double minSpeed, double maxSpeed){ //fill in later
-        return 0;
-    }
+//    public double getDistanceTravelled(){
+//        return pixelsTravelled * cmPerPixel;
+//    }
 
     public TimeCode getTimeCodeNearWall(){
         return new TimeCode(framesNearWall.size(), fps);
@@ -133,8 +139,65 @@ public class DataSet {
         return new TimeCode(framesNearCenter.size(), fps);
     }
 
-    public ArrayList<Integer> getTimeAtSpeed(double speed){ //fill in later
-        return null;
+    public ArrayList<Interval> getTimesInRoI(ArrayList<Integer> frames){
+        ArrayList<Interval> timesNearRoI = new ArrayList<>();
+        Interval interval = new Interval(frames.get(0));
+        int prevValue = interval.getStartFrame() - 1;
+        for (int frame : frames){
+            if (prevValue + 1 != frame){
+                interval.setEndFrame(prevValue);
+                timesNearRoI.add(interval);
+                interval = new Interval(frame);
+            }
+            prevValue = frame;
+        }
+        interval.setEndFrame(prevValue);
+        timesNearRoI.add(interval);
+        return timesNearRoI;
+    }
+
+    private ArrayList<Double> calculateSpeeds(){
+        ArrayList<Double> speeds = new ArrayList<>();
+        for (int i = 1; i < points.size(); i++){
+            speeds.add(getSpeed(i));
+        }
+        return speeds;
+    }
+
+
+    public double getTimeInSpeedBounds(double minSpeed, double maxSpeed){ //fill in later
+        double framesAtSpeed = 0;
+        for (int i = 1; i < points.size(); i++){
+            double speed = getSpeed(i);
+            if(speed >= minSpeed && speed < maxSpeed) framesAtSpeed++;
+        }
+        return framesAtSpeed / fps;
+    }
+
+    public double getMaximumSpeed(){
+        double maxSpeed = 0;
+        for (int i = 1; i < points.size(); i++){
+            double speed = getSpeed(i);
+            if(speed > maxSpeed) maxSpeed = speed;
+        }
+        return maxSpeed;
+    }
+
+    public void saveDataToFile(String file){
+        String data = "";
+        for (Point point : points){
+            data += point.toString() + "\n";
+        }
+        writeDataToFile("filePath.csv", data);
+    }
+
+    public void loadDataFromFile(String file){
+        String fileData = readFileAsString(file);
+        String[] individualData = fileData.split(System.getProperty("line.separator"));
+        for (String data : individualData){
+            String[] vals = data.split(", "); //splits to {x, y}
+            points.add(new Point (Integer.parseInt(vals[0]), Integer.parseInt(vals[1])));
+        }
     }
 
     private void writeDataToFile(String filePath, String data){
@@ -158,34 +221,33 @@ public class DataSet {
 
             }
         } catch (IOException e){
-                e.printStackTrace();
+            e.printStackTrace();
         }
         return output.toString();
     }
 
-    private ArrayList<Interval> getTimesInRoI(ArrayList<Integer> frames){
-        ArrayList<Interval> timesNearRoI = new ArrayList<>();
-        Interval interval = new Interval(frames.get(0));
-        int prevValue = interval.getStartFrame() - 1;
-        for (int frame : frames){
-            if (prevValue + 1 != frame){
-                interval.setEndFrame(prevValue);
-                timesNearRoI.add(interval);
-                interval = new Interval(frame);
-            }
-            prevValue = frame;
-        }
-        interval.setEndFrame(prevValue);
-        timesNearRoI.add(interval);
-        return timesNearRoI;
-    }
-
-    public ArrayList<Interval> getTimesNearWall(){ //assumes there are values in framesNearWall
+    public ArrayList<Interval> getTimesNearWall(){
         return getTimesInRoI(framesNearWall);
     }
 
     public ArrayList<Interval> getTimesNearCenter(){
         return getTimesInRoI(framesNearCenter);
+    }
+
+    public ArrayList<Integer> calculateFramesInRoI(ArrayList<Integer> frames, double regionDistance){
+        for (int i = 0; i < points.size(); i++){
+            Point point = points.get(i);
+            if (point.distanceFrom(enclosureCenter) < regionDistance) frames.add(i);
+        }
+        return frames;
+    }
+
+    public double getDistanceTravelled(){
+        double totalDistance = 0;
+        for (int i = 1; i < points.size(); i++){
+            totalDistance += points.get(i).distanceFrom(points.get(i -1 ));
+        }
+        return totalDistance * cmPerPixel;
     }
 
 }

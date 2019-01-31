@@ -1,5 +1,4 @@
 import processing.core.PApplet;
-
 import java.util.ArrayList;
 
 public class Mouse implements PixelFilter {
@@ -13,6 +12,7 @@ public class Mouse implements PixelFilter {
     final private double ENCLOSURE_RADIUS = 205;
     private DataSet dataObj;
     private Point currentCenter;
+    private int numFrames;
 
     public Mouse(){
         dataObj = new DataSet(CENTER, 205, 25);
@@ -26,6 +26,9 @@ public class Mouse implements PixelFilter {
         cheapHack(pixels);
         currentCenter = calculateMouseCenter(pixels);
         dataObj.add(currentCenter);
+
+        numFrames++;
+        if (numFrames == 9994) dataObj.saveDataToFile("filePath.csv") ;
 
         img.setPixels(pixels);
         return img;
@@ -134,7 +137,7 @@ public class Mouse implements PixelFilter {
 
     public String toString(DataSet dataObj){
         return "\nTIME: " + dataObj.getCurrentTime() +
-                "\n FRAMES: " + dataObj.getPoints().size() +
+                "\nFRAMES: " + dataObj.getPoints().size() +
                 "\nLOCATION: " + dataObj.getCurrentLocation().toString() +
                 "\nSPEED: " + Math.round(dataObj.getCurrentSpeed()) + "CM/S" +
                 "\nDISTANCE FROM WALL: " + Math.round(dataObj.getDistanceFromWall()) + "CM" +
